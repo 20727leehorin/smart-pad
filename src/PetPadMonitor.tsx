@@ -11,6 +11,13 @@ import {
   ReferenceLine,
 } from "recharts";
 
+function formatLocalYYYYMMDD(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 // ===== Error Boundary =====
 class ErrorBoundary extends React.Component<any, { hasError: boolean; msg: string }> {
   constructor(props: any) {
@@ -80,7 +87,7 @@ function getPastNDatesISO(n = 30) {
   return Array.from({ length: n }, (_, i) => {
     const d = new Date(base);
     d.setDate(base.getDate() + i);
-    return d.toISOString().split("T")[0];
+    return formatLocalYYYYMMDD(d);
   });
 }
 function toKoMD(dateISO: string) {
@@ -437,10 +444,8 @@ export default function PetPadMonitor() {
         const level = classifyByHSV(h, v);
         const diagnosis = diagnosisText(level);
         const now = new Date();
-        const timestamp = now.toISOString();
-        const date = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-          .toISOString()
-          .split("T")[0];
+        const timestamp = now.toISOString();           // 로그/정렬용은 ISO 유지 OK
+        const date = formatLocalYYYYMMDD(now);         // ✅ 캘린더 키는 로컬 날짜로
 
         const metrics = `(참고: H ${Math.round(h)}°, S ${Math.round(
           s
