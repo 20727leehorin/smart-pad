@@ -1,6 +1,4 @@
 // src/components/Splash.tsx
-import React from "react";
-
 export default function Splash({ onEnter }: { onEnter: () => void }) {
   return (
     <div

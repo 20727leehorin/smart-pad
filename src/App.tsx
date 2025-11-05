@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Splash from "./components/Splash";
 import PetPadMonitor from "./PetPadMonitor";
 
