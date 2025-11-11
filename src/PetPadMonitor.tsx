@@ -497,10 +497,31 @@ export default function PetPadMonitor() {
   function confirmPHResult() {
     if (!pendingPH) return;
     const { ph, label, metrics, date, timestamp } = pendingPH;
-    if (ph == null)
+
+    // 📘 ① pH별 안내 문구 정의
+    function pHGuideText(ph: number | null) {
+      if (ph == null)
+        return "조도가 너무 낮거나 색이 흐려 pH 측정이 어렵습니다. 다시 촬영해 주세요.";
+      if (ph <= 5)
+        return "소변이 산성입니다. 탈수나 단백질 과다 섭취 가능성이 있어요. 수분 섭취를 늘리세요.";
+      if (ph === 6 || ph === 7)
+        return "정상 범위입니다. 현재 상태를 유지하세요.";
+      if (ph === 8)
+        return "약간 알칼리성입니다. 세균 감염 가능성에 주의하세요.";
+      if (ph >= 9)
+        return "매우 알칼리성입니다. 요로 감염이나 결석 위험이 있으니 진료를 권장합니다.";
+      return "";
+    }
+
+    // 📗 ② 결과 문구 출력
+    if (ph == null) {
       setPhResult(`📏 pH 측정 불가 — ${label}`);
-    else
-      setPhResult(`📏 추정 pH: ${ph}\n${label}\n${metrics}`);
+    } else {
+      const guide = pHGuideText(ph);
+      setPhResult(`📏 추정 pH: ${ph}\n${label}\n${metrics}\n\n💡 ${guide}`);
+    }
+
+    // 📙 ③ 기록 업데이트
     setHistory((prev) =>
       upsertHistoryEntry([...prev], {
         timestamp: timestamp || new Date().toISOString(),
@@ -721,6 +742,18 @@ export default function PetPadMonitor() {
                 </div>
               )}
             </div>
+          {/* 기록 버튼들 아래에 촬영 가이드 추가 */}
+          <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700">
+            <h3 className="font-semibold mb-2">📸 촬영 가이드</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li>자연광 또는 흰색 조명 아래에서 촬영해 주세요. (색깔 조명 ❌)</li>
+              <li>플래시는 가능한 한 끄고, 그림자가 패드 위에 지지 않게 합니다.</li>
+              <li>배변 패드의 검사 영역이 화면 가운데에 오도록 정면에서 찍어 주세요.</li>
+              <li>배경(바닥, 손 등)은 최소화하고 패드만 보이도록 최대한 가깝게 촬영합니다.</li>
+              <li>사진이 너무 어둡거나 너무 밝으면 다시 한 번 촬영해 주세요.</li>
+            </ul>
+          </div>
+
             {exportText && (
               <div className="mt-2">
                 <p className="text-xs text-gray-600 mb-1">
