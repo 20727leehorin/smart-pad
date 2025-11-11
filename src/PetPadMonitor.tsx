@@ -52,14 +52,6 @@ const CELL_BG_CLASSES = [
   "bg-red-400",
 ] as const;
 
-const WEIGHTS = {
-  nightTime: 1.2,
-  lateNight: 1.1,
-  afterMeal: 1.2,
-  waterPer500ml: 1 / 500,
-  elapsedPerMin: 1 / 60,
-} as const;
-
 const ANALYZE_OPTIONS = {
   roiRatio: 0.5,
   minLuma: 15,
