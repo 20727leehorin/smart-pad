@@ -96,6 +96,7 @@ function toKoMD(dateISO: string) {
     day: "numeric",
   });
 }
+// ⚙️ 수정된 보정 함수 — 희석 요인은 진하게, 농축 요인은 낮게 반영
 function applyContextFactors(
   b: number,
   {
@@ -105,13 +106,23 @@ function applyContextFactors(
     elapsedMin,
   }: { hour: number; afterMealMin: number; waterMl: number; elapsedMin: number }
 ) {
+  // 🌙 시간대별 농축 경향 (밤일수록 농축 → 실제 농도는 낮을 수도)
   const isNight = hour >= 0 && hour <= 6;
   const isLate = hour >= 22;
-  const timeFactor = isNight ? WEIGHTS.nightTime : isLate ? WEIGHTS.lateNight : 1;
-  const mealFactor = afterMealMin < 60 ? WEIGHTS.afterMeal : 1;
+  const concentrationFactor = isNight ? 0.9 : isLate ? 0.95 : 1.0;
+
+  // 🍽️ 식후 혈당 일시상승 → 색은 진하지만 실제 포도당은 일시적이므로 낮게
+  const postMealFactor = afterMealMin < 60 ? 0.95 : 1.0;
+
+  // 💧 희석 요인: 물 많이 마시거나 시간 오래 지남 → 색 옅어짐 → 진하게 보정
   const dilutionFactor =
-    1 + waterMl * WEIGHTS.waterPer500ml + elapsedMin * WEIGHTS.elapsedPerMin;
-  return clamp(Math.round(b * timeFactor * mealFactor * dilutionFactor), 0, 255);
+    1 + (waterMl / 500) * 0.5 + (elapsedMin / 60) * 0.3;
+  // 예: 물 500ml 마심(×1.5), 60분 경과(×1.3) → 약 1.8배 정도
+
+  // 🧮 최종 보정 — 희석 요인은 곱하고, 농축 요인은 나누기
+  const corrected = b * dilutionFactor / (concentrationFactor * postMealFactor);
+
+  return clamp(Math.round(corrected), 0, 255);
 }
 function rgbToHsvDeg(R: number, G: number, B: number) {
   const r = R / 255,
